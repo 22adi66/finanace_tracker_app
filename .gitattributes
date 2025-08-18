@@ -1,0 +1,5 @@
+# Ensure proper attribution for all files
+* text=auto
+*.dart text
+*.yaml text
+*.md text
