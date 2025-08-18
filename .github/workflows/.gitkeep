@@ -1,0 +1,2 @@
+# Disable all workflows by creating empty file
+# This prevents any automated GitHub Actions from running
