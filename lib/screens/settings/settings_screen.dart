@@ -101,7 +101,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // App Settings
+            // App Settings - ONLY Dark Mode
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -117,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     
-                    // Dark Mode Toggle
+                    // Dark Mode Toggle - ONLY THIS
                     Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {
                         return ListTile(
@@ -140,42 +140,6 @@ class SettingsScreen extends StatelessWidget {
                         );
                       },
                     ),
-
-                    const Divider(),
-
-                    // Notifications (placeholder)
-                    ListTile(
-                      leading: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppTheme.primaryColor,
-                      ),
-                      title: const Text('Notifications'),
-                      subtitle: const Text('Manage notification preferences'),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      contentPadding: EdgeInsets.zero,
-                      onTap: () {
-                        // TODO: Implement notifications settings
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Notifications settings coming soon!'),
-                          ),
-                        );
-                      },
-                    ),
-
-                    const Divider(),
-
-                    // Backup (placeholder)
-                    ListTile(
-                      leading: const Icon(
-                        Icons.backup_outlined,
-                        color: AppTheme.primaryColor,
-                      ),
-                      title: const Text('Backup & Sync'),
-                      subtitle: const Text('Data is automatically synced to cloud'),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
-                      contentPadding: EdgeInsets.zero,
-                    ),
                   ],
                 ),
               ),
@@ -183,7 +147,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // About Section
+            // Privacy Section - ONLY Privacy Policy
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -191,7 +155,7 @@ class SettingsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'About',
+                      'Privacy',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -199,39 +163,6 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     
-                    ListTile(
-                      leading: const Icon(
-                        Icons.info_outline,
-                        color: AppTheme.primaryColor,
-                      ),
-                      title: const Text('App Version'),
-                      subtitle: const Text('1.0.0'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-
-                    const Divider(),
-
-                    ListTile(
-                      leading: const Icon(
-                        Icons.help_outline,
-                        color: AppTheme.primaryColor,
-                      ),
-                      title: const Text('Help & Support'),
-                      subtitle: const Text('Get help and contact support'),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      contentPadding: EdgeInsets.zero,
-                      onTap: () {
-                        // TODO: Implement help & support
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Help & Support coming soon!'),
-                          ),
-                        );
-                      },
-                    ),
-
-                    const Divider(),
-
                     ListTile(
                       leading: const Icon(
                         Icons.privacy_tip_outlined,

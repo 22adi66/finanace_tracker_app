@@ -5,7 +5,6 @@ import '../auth/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
-
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
@@ -18,8 +17,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       imagePath: 'assets/images/onboarding_1.jpg', // Your first image
-      title: 'Secure Finance Tracking',
-      description: 'Your financial information is private, protected, and always in your control with our secure finance tracker.',
+      title: 'Enjoy Finance Tracking',
+      description: 'Welcome to Finance Tracker, making budgeting simple, smart, and stress-free.',
     ),
     OnboardingPage(
       imagePath: 'assets/images/onboarding_2.jpg', // Your second image

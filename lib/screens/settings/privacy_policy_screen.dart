@@ -51,13 +51,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Last updated: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -93,7 +86,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
               [
                 'End-to-end encryption for all sensitive financial data',
                 'Secure authentication using Firebase Auth with multi-factor options',
-                'Regular security audits and updates to protect against threats',
                 'No local storage of sensitive information on your device',
               ],
             ),
@@ -103,9 +95,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               Icons.person_pin,
               [
                 'You have full control over your financial data',
-                'You can export your data at any time',
                 'You can delete your account and all associated data',
-                'You can modify privacy settings to suit your preferences',
               ],
             ),
 
@@ -125,58 +115,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
               Icons.visibility,
               [
                 'Open source approach - our privacy practices are transparent',
-                'Regular privacy policy updates with clear notifications',
                 'Direct contact available for privacy-related questions',
                 'Commitment to privacy by design in all features',
               ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Contact Information
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Questions About Privacy?',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'If you have any questions about this Privacy Policy or how we handle your data, please contact us:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.email, size: 16, color: AppTheme.primaryColor),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'privacy@financetracker.app',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ),
 
             const SizedBox(height: 24),

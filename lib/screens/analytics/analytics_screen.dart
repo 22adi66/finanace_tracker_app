@@ -17,6 +17,19 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   int _selectedChartIndex = 0;
 
+  // Consolidated chart colors
+  static const List<Color> _chartColors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+    Colors.pink,
+    Colors.indigo,
+    Colors.amber,
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,33 +39,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       body: Consumer<TransactionProvider>(
         builder: (context, transactionProvider, child) {
           if (transactionProvider.transactions.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.analytics_outlined,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No data to display',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    'Add some transactions to see analytics',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
+            return _buildEmptyState(
+              'No data to display',
+              'Add some transactions to see analytics',
+              Icons.analytics_outlined,
             );
           }
 
@@ -61,126 +51,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Chart selector
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedChartIndex = 0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _selectedChartIndex == 0
-                                  ? AppTheme.primaryColor
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Expenses',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedChartIndex == 0
-                                    ? Colors.white
-                                    : Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedChartIndex = 1),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _selectedChartIndex == 1
-                                  ? AppTheme.primaryColor
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Daily',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedChartIndex == 1
-                                    ? Colors.white
-                                    : Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedChartIndex = 2),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _selectedChartIndex == 2
-                                  ? AppTheme.primaryColor
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Monthly',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedChartIndex == 2
-                                    ? Colors.white
-                                    : Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedChartIndex = 3),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _selectedChartIndex == 3
-                                  ? AppTheme.primaryColor
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Summary',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _selectedChartIndex == 3
-                                    ? Colors.white
-                                    : Colors.grey[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
+                _buildChartSelector(),
                 const SizedBox(height: 24),
-
-                // Chart content
-                if (_selectedChartIndex == 0) ...[
-                  _buildExpensesPieChart(transactionProvider),
-                ] else if (_selectedChartIndex == 1) ...[
-                  _buildDailyTrendsChart(transactionProvider),
-                ] else if (_selectedChartIndex == 2) ...[
-                  _buildMonthlyTrendsChart(transactionProvider),
-                ] else ...[
-                  _buildSummaryCards(transactionProvider),
-                ],
+                _buildSelectedChart(transactionProvider),
               ],
             ),
           );
@@ -189,63 +62,111 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  Widget _buildEmptyState(String title, String subtitle, IconData icon) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (subtitle.isNotEmpty)
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartSelector() {
+    final options = ['Expenses', 'Daily', 'Monthly', 'Summary'];
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: options.asMap().entries.map((entry) {
+          final index = entry.key;
+          final label = entry.value;
+          
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedChartIndex = index),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _selectedChartIndex == index
+                      ? AppTheme.primaryColor
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _selectedChartIndex == index
+                        ? Colors.white
+                        : Colors.grey[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSelectedChart(TransactionProvider provider) {
+    switch (_selectedChartIndex) {
+      case 0:
+        return _buildExpensesPieChart(provider);
+      case 1:
+        return _buildDailyTrendsChart(provider);
+      case 2:
+        return _buildMonthlyTrendsChart(provider);
+      case 3:
+        return _buildSummaryCards(provider);
+      default:
+        return _buildExpensesPieChart(provider);
+    }
+  }
+
   Widget _buildExpensesPieChart(TransactionProvider provider) {
     final categorySpending = provider.getExpensesByCategory();
     
     if (categorySpending.isEmpty) {
-      return Container(
+      return SizedBox(
         height: 300,
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.pie_chart_outline,
-                size: 64,
-                color: Colors.grey,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'No expense data available',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              Text(
-                'Add some expense transactions to see the chart',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
+        child: _buildEmptyState(
+          'No expense data available',
+          'Add some expense transactions to see the chart',
+          Icons.pie_chart_outline,
         ),
       );
     }
-
-    final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.pink,
-      Colors.indigo,
-      Colors.amber,
-    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Expenses by Category',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 20),
         
@@ -260,7 +181,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 return PieChartSectionData(
                   value: entry.value,
                   title: '${percentage.toStringAsFixed(1)}%',
-                  color: colors[index % colors.length],
+                  color: _chartColors[index % _chartColors.length],
                   radius: 100,
                   titleStyle: const TextStyle(
                     fontSize: 12,
@@ -290,7 +211,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: colors[index % colors.length],
+                      color: _chartColors[index % _chartColors.length],
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -312,116 +233,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final dailyData = provider.getDailyData();
     
     if (dailyData.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.trending_up, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No daily data available',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
+      return _buildEmptyState(
+        'No daily data available',
+        '',
+        Icons.trending_up,
       );
     }
 
-    List<FlSpot> incomeSpots = [];
-    List<FlSpot> expenseSpots = [];
-    double maxY = 0;
-    
-    int index = 0;
-    dailyData.forEach((date, data) {
-      double income = data['income'] ?? 0;
-      double expense = data['expense'] ?? 0;
-      incomeSpots.add(FlSpot(index.toDouble(), income));
-      expenseSpots.add(FlSpot(index.toDouble(), expense));
-      maxY = math.max(maxY, math.max(income, expense));
-      index++;
-    });
+    final chartData = _prepareLineChartData(dailyData);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Daily Trends (Income vs Expenses)',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 20),
-        Container(
-          height: 300,
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: true),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      if (value.toInt() < dailyData.length) {
-                        final date = dailyData.keys.elementAt(value.toInt());
-                        return Text(
-                          '${DateTime.parse(date).day}/${DateTime.parse(date).month}',
-                          style: TextStyle(fontSize: 10),
-                        );
-                      }
-                      return Text('');
-                    },
-                    reservedSize: 30,
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      return Text(AppHelpers.formatCurrency(value));
-                    },
-                    reservedSize: 60,
-                  ),
-                ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: true),
-              minX: 0,
-              maxX: (dailyData.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY * 1.1,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: incomeSpots,
-                  isCurved: true,
-                  color: AppTheme.incomeColor,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-                LineChartBarData(
-                  spots: expenseSpots,
-                  isCurved: true,
-                  color: AppTheme.expenseColor,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildLegendItem('Income', AppTheme.incomeColor),
-            SizedBox(width: 20),
-            _buildLegendItem('Expenses', AppTheme.expenseColor),
-          ],
-        ),
+        const SizedBox(height: 20),
+        _buildLineChart(chartData, dailyData, true),
+        const SizedBox(height: 16),
+        _buildChartLegend(),
       ],
     );
   }
@@ -430,116 +261,129 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final monthlyData = provider.getMonthlyDetailedData();
     
     if (monthlyData.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_month, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No monthly data available',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
+      return _buildEmptyState(
+        'No monthly data available',
+        '',
+        Icons.calendar_month,
       );
     }
 
+    final chartData = _prepareLineChartData(monthlyData);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Monthly Trends (Income vs Expenses)',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+        _buildLineChart(chartData, monthlyData, false),
+        const SizedBox(height: 16),
+        _buildChartLegend(),
+      ],
+    );
+  }
+
+  Map<String, dynamic> _prepareLineChartData(Map<String, Map<String, double>> data) {
     List<FlSpot> incomeSpots = [];
     List<FlSpot> expenseSpots = [];
     double maxY = 0;
     
     int index = 0;
-    monthlyData.forEach((month, data) {
-      double income = data['income'] ?? 0;
-      double expense = data['expense'] ?? 0;
+    data.forEach((date, values) {
+      double income = values['income'] ?? 0;
+      double expense = values['expense'] ?? 0;
       incomeSpots.add(FlSpot(index.toDouble(), income));
       expenseSpots.add(FlSpot(index.toDouble(), expense));
       maxY = math.max(maxY, math.max(income, expense));
       index++;
     });
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Monthly Trends (Income vs Expenses)',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 20),
-        Container(
-          height: 300,
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: true),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      if (value.toInt() < monthlyData.length) {
-                        final monthKey = monthlyData.keys.elementAt(value.toInt());
-                        return Text(
-                          monthKey,
-                          style: TextStyle(fontSize: 10),
-                        );
-                      }
-                      return Text('');
-                    },
-                    reservedSize: 30,
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      return Text(AppHelpers.formatCurrency(value));
-                    },
-                    reservedSize: 60,
-                  ),
-                ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    return {
+      'incomeSpots': incomeSpots,
+      'expenseSpots': expenseSpots,
+      'maxY': maxY,
+      'dataLength': data.length,
+    };
+  }
+
+  Widget _buildLineChart(Map<String, dynamic> chartData, Map<String, Map<String, double>> rawData, bool isDaily) {
+    return SizedBox(
+      height: 300,
+      child: LineChart(
+        LineChartData(
+          gridData: const FlGridData(show: true),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  if (value.toInt() < rawData.length) {
+                    final dateKey = rawData.keys.elementAt(value.toInt());
+                    if (isDaily) {
+                      final date = DateTime.parse(dateKey);
+                      return Text(
+                        '${date.day}/${date.month}',
+                        style: const TextStyle(fontSize: 10),
+                      );
+                    } else {
+                      return Text(
+                        dateKey,
+                        style: const TextStyle(fontSize: 10),
+                      );
+                    }
+                  }
+                  return const Text('');
+                },
+                reservedSize: 30,
               ),
-              borderData: FlBorderData(show: true),
-              minX: 0,
-              maxX: (monthlyData.length - 1).toDouble(),
-              minY: 0,
-              maxY: maxY * 1.1,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: incomeSpots,
-                  isCurved: true,
-                  color: AppTheme.incomeColor,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-                LineChartBarData(
-                  spots: expenseSpots,
-                  isCurved: true,
-                  color: AppTheme.expenseColor,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                ),
-              ],
             ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(AppHelpers.formatCurrency(value));
+                },
+                reservedSize: 60,
+              ),
+            ),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
-        ),
-        SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildLegendItem('Income', AppTheme.incomeColor),
-            SizedBox(width: 20),
-            _buildLegendItem('Expenses', AppTheme.expenseColor),
+          borderData: FlBorderData(show: true),
+          minX: 0,
+          maxX: (chartData['dataLength'] - 1).toDouble(),
+          minY: 0,
+          maxY: chartData['maxY'] * 1.1,
+          lineBarsData: [
+            LineChartBarData(
+              spots: chartData['incomeSpots'],
+              isCurved: true,
+              color: AppTheme.incomeColor,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
+            LineChartBarData(
+              spots: chartData['expenseSpots'],
+              isCurved: true,
+              color: AppTheme.expenseColor,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildChartLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildLegendItem('Income', AppTheme.incomeColor),
+        const SizedBox(width: 20),
+        _buildLegendItem('Expenses', AppTheme.expenseColor),
       ],
     );
   }
@@ -555,7 +399,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(label),
       ],
     );
@@ -572,10 +416,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       children: [
         const Text(
           'Financial Summary',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 20),
         
@@ -627,50 +468,45 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         
         const SizedBox(height: 24),
         
-        // Additional insights
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Quick Insights',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                if (totalExpenses > 0) ...[
-                  _buildInsightRow(
-                    'Average Transaction',
-                    AppHelpers.formatCurrency(totalExpenses / provider.getTransactionsByType(TransactionType.expense).length),
-                  ),
-                ],
-                
-                if (totalIncome > totalExpenses) ...[
-                  _buildInsightRow(
-                    'Savings Rate',
-                    '${((balance / totalIncome) * 100).toStringAsFixed(1)}%',
-                  ),
-                ] else ...[
-                  _buildInsightRow(
-                    'Overspending',
-                    AppHelpers.formatCurrency(totalExpenses - totalIncome),
-                  ),
-                ],
-                
-                _buildInsightRow(
-                  'This Month',
-                  '${provider.transactions.where((t) => t.date.month == DateTime.now().month).length} transactions',
-                ),
-              ],
-            ),
-          ),
-        ),
+        _buildInsightsCard(provider, totalIncome, totalExpenses, balance),
       ],
+    );
+  }
+
+  Widget _buildInsightsCard(TransactionProvider provider, double totalIncome, double totalExpenses, double balance) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Quick Insights',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            
+            if (totalExpenses > 0)
+              _buildInsightRow(
+                'Avg Expense',
+                AppHelpers.formatCurrency(totalExpenses / provider.getTransactionsByType(TransactionType.expense).length),
+              ),
+            
+            if (totalIncome > 0)
+              _buildInsightRow(
+                'Savings Rate',
+                totalIncome > totalExpenses 
+                    ? '${((balance / totalIncome) * 100).toStringAsFixed(1)}%'
+                    : 'Overspending: ${AppHelpers.formatCurrency(totalExpenses - totalIncome)}',
+              ),
+            
+            _buildInsightRow(
+              'This Month',
+              '${provider.transactions.where((t) => t.date.month == DateTime.now().month).length} transactions',
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -689,10 +525,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
               Icon(icon, color: Colors.white, size: 20),
             ],
@@ -718,10 +551,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
