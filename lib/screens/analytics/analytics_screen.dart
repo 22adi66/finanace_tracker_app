@@ -14,21 +14,46 @@ class AnalyticsScreen extends StatefulWidget {
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
-class _AnalyticsScreenState extends State<AnalyticsScreen> {
+class _AnalyticsScreenState extends State<AnalyticsScreen> 
+    with TickerProviderStateMixin {
   int _selectedChartIndex = 0;
+  int _touchedPieIndex = -1;
+  late AnimationController _pieAnimationController;
+  late Animation<double> _pieAnimation;
 
-  // Consolidated chart colors
-  static const List<Color> _chartColors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.pink,
-    Colors.indigo,
-    Colors.amber,
+  // Beautiful gradient colors that make the pie chart pop
+  static const List<List<Color>> _chartGradientColors = [
+    [Color(0xFFFF6B6B), Color(0xFFFF5252)], // Red gradient
+    [Color(0xFF4ECDC4), Color(0xFF26A69A)], // Teal gradient
+    [Color(0xFF45B7D1), Color(0xFF1976D2)], // Blue gradient
+    [Color(0xFFFFA726), Color(0xFFFF7043)], // Orange gradient
+    [Color(0xFFAB47BC), Color(0xFF8E24AA)], // Purple gradient
+    [Color(0xFF66BB6A), Color(0xFF43A047)], // Green gradient
+    [Color(0xFFEC407A), Color(0xFFD81B60)], // Pink gradient
+    [Color(0xFF5C6BC0), Color(0xFF3F51B5)], // Indigo gradient
+    [Color(0xFFFFCA28), Color(0xFFFFA000)], // Amber gradient
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the animation when user first sees the pie chart
+    _pieAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _pieAnimation = CurvedAnimation(
+      parent: _pieAnimationController,
+      curve: Curves.easeInOutCubic,
+    );
+    _pieAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _pieAnimationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +118,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildChartSelector() {
     final options = ['Expenses', 'Daily', 'Monthly', 'Summary'];
     
+    // Simple tab-like selector for switching between chart views
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[100],
@@ -150,6 +176,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildExpensesPieChart(TransactionProvider provider) {
     final categorySpending = provider.getExpensesByCategory();
     
+    // Show a friendly message if no expense data exists yet
     if (categorySpending.isEmpty) {
       return SizedBox(
         height: 300,
@@ -161,6 +188,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       );
     }
 
+    final totalAmount = categorySpending.values.reduce((a, b) => a + b);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -168,70 +197,322 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           'Expenses by Category',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
         
-        SizedBox(
-          height: 300,
-          child: PieChart(
-            PieChartData(
-              sections: categorySpending.entries.map((entry) {
-                final index = categorySpending.keys.toList().indexOf(entry.key);
-                final percentage = (entry.value / categorySpending.values.reduce((a, b) => a + b)) * 100;
-                
-                return PieChartSectionData(
-                  value: entry.value,
-                  title: '${percentage.toStringAsFixed(1)}%',
-                  color: _chartColors[index % _chartColors.length],
-                  radius: 100,
-                  titleStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                );
-              }).toList(),
-              centerSpaceRadius: 40,
-              sectionsSpace: 2,
+        // Quick overview of total spending
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.shade50,
+                Colors.purple.shade50,
+              ],
             ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total Expenses',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                AppHelpers.formatCurrency(totalAmount),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade600,
+                ),
+              ),
+            ],
           ),
         ),
-        
         const SizedBox(height: 20),
         
-        // Legend
-        Wrap(
-          children: categorySpending.entries.map((entry) {
-            final index = categorySpending.keys.toList().indexOf(entry.key);
-            return Container(
-              margin: const EdgeInsets.all(4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+        // Interactive pie chart with smooth animations
+        AnimatedBuilder(
+          animation: _pieAnimation,
+          builder: (context, child) {
+            return SizedBox(
+              height: 320,
+              child: Stack(
                 children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: _chartColors[index % _chartColors.length],
-                      shape: BoxShape.circle,
+                  PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          // Handle user tapping on pie sections
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                pieTouchResponse == null ||
+                                pieTouchResponse.touchedSection == null) {
+                              _touchedPieIndex = -1;
+                              return;
+                            }
+                            _touchedPieIndex = pieTouchResponse
+                                .touchedSection!.touchedSectionIndex;
+                          });
+                        },
+                      ),
+                      borderData: FlBorderData(show: false),
+                      sectionsSpace: 3,
+                      centerSpaceRadius: 50,
+                      sections: _generatePieChartSections(categorySpending, totalAmount),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${entry.key.displayName}: ${AppHelpers.formatCurrency(entry.value)}',
-                    style: const TextStyle(fontSize: 14),
+                  // Center display showing total amount
+                  Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Total',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppHelpers.formatCurrency(totalAmount),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          },
+        ),
+        
+        const SizedBox(height: 20),
+        
+        // Detailed breakdown with interactive highlighting
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Category Breakdown',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...categorySpending.entries.map((entry) {
+                final index = categorySpending.keys.toList().indexOf(entry.key);
+                final percentage = (entry.value / totalAmount) * 100;
+                final gradientColors = _chartGradientColors[index % _chartGradientColors.length];
+                final isSelected = _touchedPieIndex == index; // Highlight if user touched this section
+                
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: isSelected 
+                        ? Border.all(color: gradientColors[0].withOpacity(0.3))
+                        : null,
+                    boxShadow: isSelected
+                        ? [BoxShadow(
+                            color: gradientColors[0].withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )]
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      // Beautiful gradient color indicator
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: gradientColors,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: gradientColors[0].withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Category name
+                      Expanded(
+                        child: Text(
+                          entry.key.displayName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected ? gradientColors[0] : Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
+                      // Percentage badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: gradientColors[0].withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${percentage.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: gradientColors[0],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Amount
+                      Text(
+                        AppHelpers.formatCurrency(entry.value),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? gradientColors[0] : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
         ),
       ],
     );
   }
 
+  List<PieChartSectionData> _generatePieChartSections(
+    Map<dynamic, double> categorySpending, 
+    double totalAmount
+  ) {
+    return categorySpending.entries.map((entry) {
+      final index = categorySpending.keys.toList().indexOf(entry.key);
+      final percentage = (entry.value / totalAmount) * 100;
+      final isTouched = index == _touchedPieIndex;
+      final gradientColors = _chartGradientColors[index % _chartGradientColors.length];
+      
+      return PieChartSectionData(
+        color: gradientColors[0],
+        value: entry.value * _pieAnimation.value, // Smooth entry animation
+        title: isTouched ? '${percentage.toStringAsFixed(1)}%' : '',
+        radius: isTouched ? 120.0 : 100.0, // Expand when touched
+        titleStyle: TextStyle(
+          fontSize: isTouched ? 16 : 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          shadows: [
+            Shadow(
+              color: Colors.black.withOpacity(0.3),
+              offset: const Offset(0, 1),
+              blurRadius: 2,
+            ),
+          ],
+        ),
+        badgeWidget: isTouched
+            ? Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradientColors[0].withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _getCategoryIcon(entry.key), // Smart category icon
+                  color: gradientColors[0],
+                  size: 16,
+                ),
+              )
+            : null,
+        badgePositionPercentageOffset: isTouched ? 1.3 : 0,
+      );
+    }).toList();
+  }
+
+  IconData _getCategoryIcon(dynamic category) {
+    // Choose icons that make sense for each category
+    final categoryName = category.toString().toLowerCase();
+    if (categoryName.contains('food') || categoryName.contains('restaurant')) {
+      return Icons.restaurant;
+    } else if (categoryName.contains('transport') || categoryName.contains('car')) {
+      return Icons.directions_car;
+    } else if (categoryName.contains('entertainment') || categoryName.contains('movie')) {
+      return Icons.movie;
+    } else if (categoryName.contains('shopping') || categoryName.contains('clothes')) {
+      return Icons.shopping_bag;
+    } else if (categoryName.contains('health') || categoryName.contains('medical')) {
+      return Icons.local_hospital;
+    } else if (categoryName.contains('education') || categoryName.contains('book')) {
+      return Icons.school;
+    } else if (categoryName.contains('bill') || categoryName.contains('utility')) {
+      return Icons.receipt;
+    }
+    return Icons.category; // Fallback for unknown categories
+  }
+
   Widget _buildDailyTrendsChart(TransactionProvider provider) {
     final dailyData = provider.getDailyData();
     
+    // Keep it simple - show message if no daily data yet
     if (dailyData.isEmpty) {
       return _buildEmptyState(
         'No daily data available',
@@ -260,6 +541,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildMonthlyTrendsChart(TransactionProvider provider) {
     final monthlyData = provider.getMonthlyDetailedData();
     
+    // Simple check for monthly data availability
     if (monthlyData.isEmpty) {
       return _buildEmptyState(
         'No monthly data available',
