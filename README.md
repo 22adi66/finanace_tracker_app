@@ -108,15 +108,6 @@ The app includes onboarding images in `assets/images/`:
 - `onboarding_2.jpg` 
 - `onboarding_3.jpg`
 
-## 📱 Supported Platforms
-
-- ✅ Android
-- ✅ iOS
-- ✅ Web
-- ✅ Windows
-- ✅ macOS
-- ✅ Linux
-
 ## 🤝 Contributing
 
 1. Fork the repository
